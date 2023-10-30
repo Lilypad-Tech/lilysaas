@@ -133,3 +133,5 @@ and in another terminal:
 ```
 ssh -L 8081:localhost:8081 <gpu-node>
 ```
+Then open [http://localhost](http://localhost) in the browser
+
