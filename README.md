@@ -125,6 +125,8 @@ docker-compose exec api bash
 go run . serve
 ```
 
+#### port forwarding for local web development on a remote GPU machine
+
 If you want to run the stack on a GPU machine and access it via browser on another machine, the following might be useful:
 ```
 sudo ssh -L 80:localhost:80 <user>@<gpu-node>
@@ -135,3 +137,4 @@ ssh -L 8081:localhost:8081 <gpu-node>
 ```
 Then open [http://localhost](http://localhost) in the browser
 
+of course, VS code remote via SSH is useful in this scenario as well
