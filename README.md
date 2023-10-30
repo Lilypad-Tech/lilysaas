@@ -124,3 +124,12 @@ Then we exec into the api container and run the api server:
 docker-compose exec api bash
 go run . serve
 ```
+
+If you want to run the stack on a GPU machine and access it via browser on another machine, the following might be useful:
+```
+sudo ssh -L 80:localhost:80 <user>@<gpu-node>
+```
+and in another terminal:
+```
+ssh -L 8081:localhost:8081 <gpu-node>
+```
