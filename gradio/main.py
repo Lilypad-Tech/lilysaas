@@ -1,3 +1,4 @@
+import requests
 from fastapi import FastAPI
 import gradio as gr
 
@@ -15,7 +16,10 @@ def read_main():
     return {"message": "here be dragons"}
 
 def cowsay(message, request: gr.Request):
-    return "Hello " + message + "! " + str(dict(request.query_params))
+
+    jobs = requests.get("http://api/api/v1/jobs")
+
+    return "Hello " + message + "! " + str(dict(request.query_params)) + str(jobs)
 
 def alternatingly_agree(message, history):
     if len(history) % 2 == 0:
@@ -25,6 +29,12 @@ def alternatingly_agree(message, history):
 
 # TODO: show the API call made to LilySaaS API in the UI, so users can see
 # easily how to recreate it
+
+# WHAT TO DO NEXT: make the functions above call the authenticated (for now)
+# lilysaas API and actually work end-to-end
+
+# If user is not logged in, make the frontend display a "log in to run this
+# model" button with direct links to google and github OAuth
 
 APPS = {
     "cowsay":
