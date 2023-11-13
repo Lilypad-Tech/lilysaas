@@ -5,48 +5,29 @@ from fastapi import FastAPI
 import gradio as gr
 import time
 import os
-
-# TODO: implement multiple pages within the app as separate gradio apps within
-# this python process
-
-# must match path nginx/noxy is proxying to (see docker-compose.yml)
-CUSTOM_PATH = "/gradio"
+from pathlib import Path
 
 app = FastAPI()
 
-# should never access this route directly
-@app.get("/")
-def read_main():
-    return {"message": "here be dragons"}
 
-# download results from the solver to a tmp directory, returning the path
-def getTarball(id: str) -> str:
-    solverUrl = os.getenv("SOLVER_URL") + f"/api/v1/deals/{id}/files"
-
-    r = requests.get(solverUrl, allow_redirects=True)
-
-    with tempfile.TemporaryDirectory(delete=False) as temp_dir:
-        temp_file_path = os.path.join(temp_dir, "temp.tar")
-        with open(temp_file_path, "wb") as temp_file:
-            temp_file.write(r.content)
-            print(f" ---> HERE IS A FILE: {temp_file.name} from {solverUrl}")
-        with tarfile.open(temp_file_path, "r") as tar:
-            tar.extractall(temp_dir)
-        return temp_dir
-
-
-def cowsay(message, request: gr.Request) -> str:
+def run(module, inputs, request: gr.Request):
     res = requests.post("http://api/api/v1/jobs/sync", headers={
         "Authorization": "Bearer "+request.query_params["userApiToken"]
     }, json={
-        "module": "cowsay:v0.0.1",
-        "inputs": {"Message": message},
+        "module": module,
+        "inputs": inputs,
     }).json()
+    return getTarball(res["result"]["deal_id"])
 
-    import pprint; pprint.pprint(res)
- 
-    tmpdir = getTarball(res["result"]["deal_id"])
-    return open(tmpdir+"/stdout").read()
+
+def sdxl(prompt, request: gr.Request) -> Path:
+    results_dir = run("sdxl:v0.9-lilypad1", {"PromptEnv": f"PROMPT={prompt}"}, request)
+    return Path(results_dir+"/output/image-42.png")
+
+
+def cowsay(message, request: gr.Request) -> str:
+    results_dir = run("cowsay:v0.0.1", {"Message": message}, request)
+    return open(results_dir+"/stdout").read()
 
 
 def alternatingly_agree(message, history):
@@ -75,8 +56,8 @@ APPS = {
         ),
     "sdxl":
         gr.Interface(
-            fn=cowsay,
-            inputs=gr.Textbox(lines=2, placeholder="Enter prompt for SDXL"),
+            fn=sdxl,
+            inputs=gr.Textbox(lines=2, placeholder="Enter prompt for Stable Diffusion XL"),
             outputs="image",
             allow_flagging="never",
             css="footer {visibility: hidden}"
@@ -86,6 +67,31 @@ APPS = {
             css="footer {visibility: hidden}"
         ),
 }
+
+# should never access this route directly
+@app.get("/")
+def read_main():
+    return {"message": "here be dragons"}
+
+# download results from the solver to a tmp directory, returning the path
+def getTarball(id: str) -> str:
+    solverUrl = os.getenv("SOLVER_URL") + f"/api/v1/deals/{id}/files"
+
+    r = requests.get(solverUrl, allow_redirects=True)
+
+    with tempfile.TemporaryDirectory(delete=False) as temp_dir:
+        temp_file_path = os.path.join(temp_dir, "temp.tar")
+        with open(temp_file_path, "wb") as temp_file:
+            temp_file.write(r.content)
+            print(f" ---> HERE IS A FILE: {temp_file.name} from {solverUrl}")
+        with tarfile.open(temp_file_path, "r") as tar:
+            tar.extractall(temp_dir)
+        return temp_dir
+
+
+
+# must match path nginx/noxy is proxying to (see docker-compose.yml)
+CUSTOM_PATH = "/gradio"
 
 for (app_name, gradio_app) in APPS.items():
     print("mounting app", app_name, "->", gradio_app)
