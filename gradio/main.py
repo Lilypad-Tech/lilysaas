@@ -34,11 +34,16 @@ def cowsay(message, request: gr.Request) -> str:
     return open(results_dir+"/stdout").read()
 
 
-def alternatingly_agree(message, history):
-    if len(history) % 2 == 0:
-        return f"Yes, I do think that '{message}'"
-    else:
-        return "I don't think so"
+def mistral7b(message, history, request: gr.Request):
+    inst_str = ""
+    for i, (q, a) in enumerate(history):
+        inst_str += f"[INST]{q}[/INST]{a}"
+        if i < len(history) - 1:
+            inst_str += "\n"
+    inst_str += f"[INST]{message}[/INST]"
+    prompt = f"<s>{inst_str}"
+    results_dir = run("mistral-7b-instruct:v0.1-lilypad3", {"PromptEnv": f"PROMPT={prompt}"}, request)
+    return open(results_dir+"/stdout").read().split("[START]")[1].split("[/INST]")[-1]
 
 # TODO: show the API call made to LilySaaS API in the UI, so users can see
 # easily how to recreate it
@@ -67,7 +72,7 @@ APPS = {
             css="footer {visibility: hidden}"
         ),
     "mistral7b":
-        gr.ChatInterface(alternatingly_agree,
+        gr.ChatInterface(mistral7b,
             css="footer {visibility: hidden}"
         ),
 }
