@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/bacalhau-project/lilypad/pkg/data"
+	"github.com/bacalhau-project/lilypad/pkg/jobcreator"
 	"github.com/bacalhau-project/lilysaas/api/pkg/filestore"
 	"github.com/bacalhau-project/lilysaas/api/pkg/job"
 	"github.com/bacalhau-project/lilysaas/api/pkg/types"
@@ -29,17 +29,17 @@ func (apiServer *LilysaasAPIServer) getModules(res http.ResponseWriter, req *htt
 	return job.GetModules()
 }
 
-func (apiServer *LilysaasAPIServer) createJob(res http.ResponseWriter, req *http.Request) (data.JobOfferContainer, error) {
+func (apiServer *LilysaasAPIServer) createJobAsync(res http.ResponseWriter, req *http.Request) (*jobcreator.RunJobResults, error) {
 	request := types.JobSpec{}
 	bs, err := io.ReadAll(req.Body)
 	if err != nil {
-		return data.JobOfferContainer{}, err
+		return nil, err
 	}
 	err = json.Unmarshal(bs, &request)
 	if err != nil {
-		return data.JobOfferContainer{}, err
+		return nil, err
 	}
-	return apiServer.Controller.CreateJob(apiServer.getRequestContext(req), request)
+	return apiServer.Controller.CreateJobAsync(apiServer.getRequestContext(req), request)
 }
 
 func (apiServer *LilysaasAPIServer) filestoreConfig(res http.ResponseWriter, req *http.Request) (filestore.FilestoreConfig, error) {

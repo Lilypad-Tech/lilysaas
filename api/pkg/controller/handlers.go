@@ -3,12 +3,15 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/bacalhau-project/lilypad/pkg/data"
+	"github.com/bacalhau-project/lilypad/pkg/jobcreator"
 	jobutils "github.com/bacalhau-project/lilysaas/api/pkg/job"
 	"github.com/bacalhau-project/lilysaas/api/pkg/store"
 	"github.com/bacalhau-project/lilysaas/api/pkg/system"
 	"github.com/bacalhau-project/lilysaas/api/pkg/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func (c *Controller) GetStatus(ctx types.RequestContext) (types.UserStatus, error) {
@@ -45,14 +48,22 @@ func (c *Controller) GetTransactions(ctx types.RequestContext) ([]*types.Balance
 	})
 }
 
-func (c *Controller) CreateJob(ctx types.RequestContext, request types.JobSpec) (data.JobOfferContainer, error) {
-	container, err := c.Options.JobRunner.RunJob(ctx.Ctx, request)
+func (c *Controller) checkUserFundsForJob(ctx types.RequestContext, request types.JobSpec) error {
+	// TODO: we should make checking for funds, running the job and then billing
+	// the user in some sort of transaction so that user can't submit 100 jobs
+	// in parallel and end up with a negative balance
+	_, err := jobutils.GetModule(request.Module)
 	if err != nil {
-		return container, err
+		return err
 	}
+	// module.Cost is negative, so we add it to the user's balance
+	return nil
+}
+
+func (c *Controller) billUserForJob(ctx types.RequestContext, jobID string, request types.JobSpec) error {
 	module, err := jobutils.GetModule(request.Module)
 	if err != nil {
-		return container, err
+		return err
 	}
 	err = c.Options.Store.CreateBalanceTransfer(ctx.Ctx, types.BalanceTransfer{
 		ID:          system.GenerateUUID(),
@@ -61,30 +72,25 @@ func (c *Controller) CreateJob(ctx types.RequestContext, request types.JobSpec) 
 		PaymentType: types.PaymentTypeJob,
 		Amount:      -module.Cost,
 		Data: types.BalanceTransferData{
-			JobID: container.ID,
+			JobID: jobID,
 		},
 	})
+
+	return err
+}
+
+func (c *Controller) CreateJobAsync(ctx types.RequestContext, request types.JobSpec) (*jobcreator.RunJobResults, error) {
+	err := c.checkUserFundsForJob(ctx, request)
 	if err != nil {
-		return container, err
+		return nil, err
 	}
-	err = c.Options.Store.CreateJob(ctx.Ctx, types.Job{
-		ID:        container.ID,
-		Owner:     ctx.Owner,
-		OwnerType: ctx.OwnerType,
-		State:     data.GetAgreementStateString(container.State),
-		Status:    "",
-		Data: types.JobData{
-			Spec: types.JobSpec{
-				Module: request.Module,
-				Inputs: request.Inputs,
-			},
-			Container: container,
-		},
+
+	result, err := c.Options.JobRunner.RunJob(ctx.Ctx, request, func(evOffer data.JobOfferContainer) {
+		fmt.Printf("evOffer --------------------------------------\n")
+		spew.Dump(evOffer)
 	})
-	if err != nil {
-		return container, err
-	}
-	return container, err
+
+	return result, err
 }
 
 func (c *Controller) CreateAPIKey(ctx types.RequestContext, name string) (string, error) {

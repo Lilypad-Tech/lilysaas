@@ -1,6 +1,7 @@
 import requests
 from fastapi import FastAPI
 import gradio as gr
+import time
 
 # TODO: implement multiple pages within the app as separate gradio apps within
 # this python process
@@ -17,9 +18,18 @@ def read_main():
 
 def cowsay(message, request: gr.Request):
 
-    jobs = requests.get("http://api/api/v1/jobs")
+    # jobs = requests.get("http://api/api/v1/jobs", headers={
+    #     "Authorization": "Bearer "+request.query_params["userApiToken"]
+    # })
 
-    return "Hello " + message + "! " + str(dict(request.query_params)) + str(jobs)
+    res = requests.post("http://api/api/v1/jobs/async", headers={
+        "Authorization": "Bearer "+request.query_params["userApiToken"]
+    }, json={
+        "module": "cowsay:v0.0.1",
+        "inputs": {"Message": "arse"},
+    })
+
+    return "um Kai!, Hello " + message + "! " + str(dict(request.query_params)) + str(res.text)
 
 def alternatingly_agree(message, history):
     if len(history) % 2 == 0:

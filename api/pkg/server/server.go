@@ -85,7 +85,7 @@ func (apiServer *LilysaasAPIServer) ListenAndServe(ctx context.Context, cm *syst
 	// TODO: make this route work when not logged in (is this the most important
 	// thing to do next??) probably not. users like fluence can use their
 	// logged-in api token and we'll just give them $1M of credits
-	authRouter.HandleFunc("/jobs", wrapper(apiServer.createJob)).Methods("POST")
+	authRouter.HandleFunc("/jobs/async", wrapper(apiServer.createJobAsync)).Methods("POST")
 
 	authRouter.HandleFunc("/filestore/config", wrapper(apiServer.filestoreConfig)).Methods("GET")
 	authRouter.HandleFunc("/filestore/list", wrapper(apiServer.filestoreList)).Methods("GET")

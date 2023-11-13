@@ -6,6 +6,7 @@ import (
 
 	"github.com/bacalhau-project/lilypad/pkg/data"
 	"github.com/bacalhau-project/lilypad/pkg/jobcreator"
+	optionsfactory "github.com/bacalhau-project/lilypad/pkg/options"
 	lilypadsystem "github.com/bacalhau-project/lilypad/pkg/system"
 	"github.com/bacalhau-project/lilypad/pkg/web3"
 	"github.com/bacalhau-project/lilysaas/api/pkg/types"
@@ -53,6 +54,12 @@ func NewJobRunner(ctx context.Context) (*JobRunner, error) {
 	}, nil
 }
 
+func getCommandContext(ctx context.Context) *lilypadsystem.CommandContext {
+	tmpCommand := &cobra.Command{}
+	tmpCommand.SetContext(ctx)
+	return lilypadsystem.NewCommandContext(tmpCommand)
+}
+
 func (runner *JobRunner) Subscribe(ctx context.Context, callback jobcreator.JobOfferSubscriber) {
 	runner.JobCreator.SubscribeToJobOfferUpdates(callback)
 }
@@ -79,15 +86,17 @@ func (runner *JobRunner) GetJobContainer(ctx context.Context, request types.JobS
 	return container, nil
 }
 
-func (runner *JobRunner) RunJob(ctx context.Context, request types.JobSpec) (data.JobOfferContainer, error) {
-	jobOffer, err := runner.GetJobOffer(ctx, request)
-	if err != nil {
-		return data.JobOfferContainer{}, err
-	}
-	return runner.JobCreator.AddJobOffer(jobOffer)
+func (runner *JobRunner) RunJob(ctx context.Context, request types.JobSpec, handler func(evOffer data.JobOfferContainer)) (*jobcreator.RunJobResults, error) {
+	commandCtx := getCommandContext(ctx)
+	options := optionsfactory.NewJobCreatorOptions()
 
-	// result, err := jobCreatorService.GetResult(finalJobOffer.DealID)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	options.Offer.Module.Name = request.Module
+	options.Offer.Inputs = request.Inputs
+
+	options, err := optionsfactory.ProcessJobCreatorOptions(options, []string{})
+	if err != nil {
+		return nil, err
+	}
+
+	return jobcreator.RunJob(commandCtx, options, handler)
 }
