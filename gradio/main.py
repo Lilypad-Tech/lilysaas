@@ -26,7 +26,7 @@ def run(module, inputs, request: gr.Request):
 
 def sdxl(prompt, request: gr.Request) -> Path:
     results_dir = run("sdxl:v0.9-lilypad1", {"PromptEnv": f"PROMPT={prompt}"}, request)
-    return Path(results_dir+"/output/image-42.png")
+    return Path(results_dir+"/outputs/image-42.png")
 
 
 def cowsay(message, request: gr.Request) -> str:
