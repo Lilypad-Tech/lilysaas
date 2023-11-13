@@ -5,7 +5,7 @@ services:
     image: binocarlos/noxy:v6
     restart: always
     ports:
-      - 80:80
+      - ${PORT_NOXY:-80}:80
     depends_on:
       - postgres
       - keycloak
@@ -13,7 +13,7 @@ services:
       - frontend
     environment:
       - NOXY_DEFAULT_HOST=frontend
-      - NOXY_DEFAULT_PORT=8081
+      - NOXY_DEFAULT_PORT=${FRONTEND_INTERNAL_PORT:-8081}
       - NOXY_DEFAULT_WS=1
       - NOXY_API_FRONT=/api/v1
       - NOXY_API_HOST=api
@@ -32,25 +32,24 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - lilysaas-postgres-db:/var/lib/postgresql/data
+      - ${POSTGRES_DATA:-lilysaas-postgres-db}:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD-postgres}
   keycloak:
     image: quay.io/modeldynamics/keycloak:15.0.2-helix
-    user: "1000:0"
     restart: always
     environment:
       - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=oh-hallo-insecure-password
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD-oh-hallo-insecure-password}
       - KC_PROXY=edge
       - DB_VENDOR=h2
       - KEYCLOAK_IMPORT=/imported/realm.json -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile=preview
-      - KEYCLOAK_FRONTEND_URL=http://localhost/auth/
+      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://localhost/auth/}
     volumes:
       - ./realm.json:/imported/realm.json
-      - lilysaas-keycloak-db:/opt/jboss/keycloak/standalone/data
+      - ${KEYCLOAK_DATA:-lilysaas-keycloak-db}:/opt/jboss/keycloak/standalone/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
       interval: 10s
@@ -64,20 +63,21 @@ services:
     restart: always
     env_file: .env
     environment:
-      - APP_URL=http://localhost
+      - LOG_LEVEL=debug
+      - APP_URL=${SERVER_URL:-http://localhost}
       - POSTGRES_HOST=postgres
       - POSTGRES_DATABASE=postgres
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - SERVER_URL=http://localhost
-      - WEB3_RPC_URL=ws://172.17.0.1:8546
-      - SERVICE_SOLVER=0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
-      - SERVICE_MEDIATORS=0x90F79bf6EB2c4f870365E785982E1f101E93b906
-      - WEB3_CONTROLLER_ADDRESS=0x59b670e9fA9D0A427751Af201D676719a970857b
+      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD-postgres}
+      - SERVER_URL=${SERVER_URL:-http://localhost}
       - KEYCLOAK_URL=http://keycloak:8080/auth
+      - WEB3_RPC_URL=ws://172.17.0.1:8546
+      - SERVICE_SOLVER=${SERVICE_SOLVER-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC}
+      - SERVICE_MEDIATORS=${SERVICE_MEDIATORS-0x90F79bf6EB2c4f870365E785982E1f101E93b906}
+      - WEB3_CONTROLLER_ADDRESS=${WEB3_CONTROLLER_ADDRESS-0x59b670e9fA9D0A427751Af201D676719a970857b}
       # this is an insecure development key do not use!
       - KEYCLOAK_TOKEN=5ca0fc03-d625-456e-bca7-8e732309165f
-    entrypoint: tail -f /dev/null
+    entrypoint: ${API_ENTRYPOINT:-tail -f /dev/null}
     volumes:
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
@@ -100,18 +100,17 @@ services:
     volumes:
       - ./gradio:/app
 
-    # TODO: mount the same data directory api server is using for filestore to
-    # gradio so it can just read files from there, including lilypad results...
-
   frontend:
     ports:
-      - 8081:8081
+      - 8081:${FRONTEND_INTERNAL_PORT:-8081}
     build:
       context: frontend
       dockerfile: Dockerfile
-      target: build-env
+      # set FRONTEND_TARGET=deploy-frontend in .env to build production assets
+      target: ${FRONTEND_TARGET:-build-env}
     restart: always
-    entrypoint: yarn run dev
+    # let it be defined but not empty (no colon below), since an empty entrypoint means use the one from the Dockerfile
+    entrypoint: ${FRONTEND_ENTRYPOINT-yarn run dev}
     volumes:
       - ./frontend/package.json:/app/package.json
       - ./frontend/src:/app/src
@@ -123,4 +122,3 @@ services:
 volumes:
   lilysaas-keycloak-db:
   lilysaas-postgres-db:
-
