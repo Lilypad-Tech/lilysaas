@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/bacalhau-project/lilypad/pkg/jobcreator"
+	"github.com/bacalhau-project/lilypad/pkg/data"
 	"github.com/bacalhau-project/lilysaas/api/pkg/filestore"
 	"github.com/bacalhau-project/lilysaas/api/pkg/job"
 	"github.com/bacalhau-project/lilysaas/api/pkg/types"
@@ -29,7 +29,12 @@ func (apiServer *LilysaasAPIServer) getModules(res http.ResponseWriter, req *htt
 	return job.GetModules()
 }
 
-func (apiServer *LilysaasAPIServer) createJobAsync(res http.ResponseWriter, req *http.Request) (*jobcreator.RunJobResults, error) {
+type RunJobResults struct {
+	JobOffer data.JobOfferContainer `json:"job_offer"`
+	Result   data.Result            `json:"result"`
+}
+
+func (apiServer *LilysaasAPIServer) createJobSync(res http.ResponseWriter, req *http.Request) (*RunJobResults, error) {
 	request := types.JobSpec{}
 	bs, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -38,6 +43,26 @@ func (apiServer *LilysaasAPIServer) createJobAsync(res http.ResponseWriter, req 
 	err = json.Unmarshal(bs, &request)
 	if err != nil {
 		return nil, err
+	}
+	result, err := apiServer.Controller.CreateJobSync(apiServer.getRequestContext(req), request)
+	if err != nil {
+		return nil, err
+	}
+	return &RunJobResults{
+		JobOffer: result.JobOffer,
+		Result:   result.Result,
+	}, nil
+}
+
+func (apiServer *LilysaasAPIServer) createJobAsync(res http.ResponseWriter, req *http.Request) (string, error) {
+	request := types.JobSpec{}
+	bs, err := io.ReadAll(req.Body)
+	if err != nil {
+		return "", err
+	}
+	err = json.Unmarshal(bs, &request)
+	if err != nil {
+		return "", err
 	}
 	return apiServer.Controller.CreateJobAsync(apiServer.getRequestContext(req), request)
 }

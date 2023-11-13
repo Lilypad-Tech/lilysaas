@@ -86,7 +86,7 @@ func (runner *JobRunner) GetJobContainer(ctx context.Context, request types.JobS
 	return container, nil
 }
 
-func (runner *JobRunner) RunJob(ctx context.Context, request types.JobSpec, handler func(evOffer data.JobOfferContainer)) (*jobcreator.RunJobResults, error) {
+func (runner *JobRunner) RunJobSync(ctx context.Context, request types.JobSpec, handler func(evOffer data.JobOfferContainer)) (*jobcreator.RunJobResults, error) {
 	commandCtx := getCommandContext(ctx)
 	options := optionsfactory.NewJobCreatorOptions()
 
@@ -99,4 +99,16 @@ func (runner *JobRunner) RunJob(ctx context.Context, request types.JobSpec, hand
 	}
 
 	return jobcreator.RunJob(commandCtx, options, handler)
+}
+
+func (runner *JobRunner) RunJobAsync(ctx context.Context, request types.JobSpec) (string, error) {
+	jobOffer, err := runner.GetJobOffer(ctx, request)
+	if err != nil {
+		return "", err
+	}
+	container, err := runner.JobCreator.AddJobOffer(jobOffer)
+	if err != nil {
+		return "", err
+	}
+	return container.DealID, nil
 }

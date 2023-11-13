@@ -79,16 +79,41 @@ func (c *Controller) billUserForJob(ctx types.RequestContext, jobID string, requ
 	return err
 }
 
-func (c *Controller) CreateJobAsync(ctx types.RequestContext, request types.JobSpec) (*jobcreator.RunJobResults, error) {
+func (c *Controller) CreateJobAsync(ctx types.RequestContext, request types.JobSpec) (string, error) {
+	err := c.checkUserFundsForJob(ctx, request)
+	if err != nil {
+		return "", err
+	}
+	// TODO: charge them money
+	id, err := c.Options.JobRunner.RunJobAsync(ctx.Ctx, request)
+	if err != nil {
+		return "", err
+	}
+	err = c.billUserForJob(ctx, id, request)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (c *Controller) CreateJobSync(ctx types.RequestContext, request types.JobSpec) (*jobcreator.RunJobResults, error) {
 	err := c.checkUserFundsForJob(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.Options.JobRunner.RunJob(ctx.Ctx, request, func(evOffer data.JobOfferContainer) {
+	result, err := c.Options.JobRunner.RunJobSync(ctx.Ctx, request, func(evOffer data.JobOfferContainer) {
 		fmt.Printf("evOffer --------------------------------------\n")
 		spew.Dump(evOffer)
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.billUserForJob(ctx, result.JobOffer.DealID, request)
+	if err != nil {
+		return nil, err
+	}
 
 	return result, err
 }

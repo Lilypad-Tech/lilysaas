@@ -1,7 +1,10 @@
+import tarfile
+import tempfile
 import requests
 from fastapi import FastAPI
 import gradio as gr
 import time
+import os
 
 # TODO: implement multiple pages within the app as separate gradio apps within
 # this python process
@@ -16,20 +19,35 @@ app = FastAPI()
 def read_main():
     return {"message": "here be dragons"}
 
-def cowsay(message, request: gr.Request):
+# download results from the solver to a tmp directory, returning the path
+def getTarball(id: str) -> str:
+    solverUrl = os.getenv("SOLVER_URL") + f"/api/v1/deals/{id}/files"
 
-    # jobs = requests.get("http://api/api/v1/jobs", headers={
-    #     "Authorization": "Bearer "+request.query_params["userApiToken"]
-    # })
+    r = requests.get(solverUrl, allow_redirects=True)
 
-    res = requests.post("http://api/api/v1/jobs/async", headers={
+    with tempfile.TemporaryDirectory(delete=False) as temp_dir:
+        temp_file_path = os.path.join(temp_dir, "temp.tar")
+        with open(temp_file_path, "wb") as temp_file:
+            temp_file.write(r.content)
+            print(f" ---> HERE IS A FILE: {temp_file.name} from {solverUrl}")
+        with tarfile.open(temp_file_path, "r") as tar:
+            tar.extractall(temp_dir)
+        return temp_dir
+
+
+def cowsay(message, request: gr.Request) -> str:
+    res = requests.post("http://api/api/v1/jobs/sync", headers={
         "Authorization": "Bearer "+request.query_params["userApiToken"]
     }, json={
         "module": "cowsay:v0.0.1",
-        "inputs": {"Message": "arse"},
-    })
+        "inputs": {"Message": message},
+    }).json()
 
-    return "um Kai!, Hello " + message + "! " + str(dict(request.query_params)) + str(res.text)
+    import pprint; pprint.pprint(res)
+ 
+    tmpdir = getTarball(res["result"]["deal_id"])
+    return open(tmpdir+"/stdout").read()
+
 
 def alternatingly_agree(message, history):
     if len(history) % 2 == 0:
