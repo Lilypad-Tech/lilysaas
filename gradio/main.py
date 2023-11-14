@@ -11,6 +11,8 @@ app = FastAPI()
 
 
 def run(module, inputs, request: gr.Request):
+    if not request.query_params["userApiToken"].startswith("lp-"):
+        raise Exception("Please log in / register")
     res = requests.post("http://api/api/v1/jobs/sync", headers={
         "Authorization": "Bearer "+request.query_params["userApiToken"]
     }, json={
