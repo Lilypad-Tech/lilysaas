@@ -65,7 +65,7 @@ const Dashboard: FC = () => {
           </Grid>
         </Grid>
         <iframe
-          src={"/gradio/" + selectedModule + "?__theme=light&userApiToken=" + account.apiKeys[0]?.key}
+          src={"/gradio/" + selectedModule + "/?__theme=light&userApiToken=" + account.apiKeys[0]?.key}
           title="Gradio"
           style={{
             width: '100%',
