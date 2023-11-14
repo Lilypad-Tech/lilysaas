@@ -19,11 +19,13 @@ def run(module, inputs, request: gr.Request):
         "module": module,
         "inputs": inputs,
     })
+    j = None
     try:
         j = res.json()
-        return getTarball(j["result"]["deal_id"])
     except Exception as e:
         raise Exception(f"Error parsing JSON response: {res.text}")
+    if j is not None:
+        return getTarball(j["result"]["deal_id"])
 
 
 def sdxl(prompt, request: gr.Request) -> Path:
