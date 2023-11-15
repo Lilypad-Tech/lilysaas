@@ -250,10 +250,12 @@ func serve(cmd *cobra.Command, options *AllOptions) error {
 		return err
 	}
 
+	log.Info().Msgf("created job runner")
 	store, err := store.NewPostgresStore(options.StoreOptions)
 	if err != nil {
 		return err
 	}
+	log.Info().Msgf("created store")
 
 	options.ControllerOptions.Store = store
 	options.ControllerOptions.Filestore = fs
@@ -267,16 +269,19 @@ func serve(cmd *cobra.Command, options *AllOptions) error {
 	if err != nil {
 		return err
 	}
+	log.Info().Msgf("created controller")
 
 	err = controller.Start()
 	if err != nil {
 		return err
 	}
+	log.Info().Msgf("started controller")
 
 	server, err := server.NewServer(options.ServerOptions, store, controller)
 	if err != nil {
 		return err
 	}
+	log.Info().Msgf("started server")
 
 	log.Info().Msgf("LilySaaS server listening on %s:%d", options.ServerOptions.Host, options.ServerOptions.Port)
 
