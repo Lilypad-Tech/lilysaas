@@ -33,7 +33,7 @@ require (
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.13.4 // indirect
+	github.com/ethereum/go-ethereum v1.13.5 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/flynn/noise v1.0.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -74,6 +74,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jbenet/go-temp-err-catcher v0.1.0 // indirect
 	github.com/jbenet/goprocess v0.1.4 // indirect
+	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -91,6 +92,7 @@ require (
 	github.com/polydawn/refmt v0.89.0 // indirect
 	github.com/quic-go/quic-go v0.39.0 // indirect
 	github.com/quic-go/webtransport-go v0.6.0 // indirect
+	github.com/recws-org/recws v1.4.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
@@ -127,7 +129,7 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231113101923-bc40ee267691
+	github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231115103228-49c0aa641c98
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/deckarep/golang-set/v2 v2.3.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
