@@ -44,6 +44,8 @@ github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00
 github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231113101923-bc40ee267691/go.mod h1:H825KzxRO5Ybq5EJwHjpda8oU2ncHMunSGYiFyaQBlY=
 github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231115103228-49c0aa641c98 h1:Dr2mlpPIKXxYKZ51JKw0c/fFhvt7jI04emZdZwLXnlE=
 github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231115103228-49c0aa641c98/go.mod h1:YRdFbtMrv4oMSuuE28wMlPutZzGu/DZEfdtcPjO/ZpI=
+github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231115110455-9514649fe2bd h1:NSSwLTuCm1B9fFat+8JE9TkZUcaMHRr54PQTapbbdGU=
+github.com/bacalhau-project/lilypad v0.0.1-08ac6ae4e4e0776a0cab5dd04c4941a37cb00039.0.20231115110455-9514649fe2bd/go.mod h1:H825KzxRO5Ybq5EJwHjpda8oU2ncHMunSGYiFyaQBlY=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
