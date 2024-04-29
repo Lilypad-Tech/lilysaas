@@ -1,5 +1,5 @@
 [{
-  "id": "cowsay:v0.0.1",
+  "id": "cowsay:v0.0.3",
   "title": "Cow Say",
   "cost": 1,
   "template": "text-to-text"
